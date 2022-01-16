@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <stdlib.h>
 #include <math.h>
 
@@ -41,6 +42,9 @@ int main(){
 	float delta; // "standard deviation for current level"
 	int x, y, y0, D, d; // "indexing variables"
 
+	// unused variables in psuedo code
+	(void) i; (void) y0;
+
 	// BEGIN:
 	const int N = pow(2,MAX_LEVEL);
 	float X[33][33]; // N + 1...
@@ -50,23 +54,26 @@ int main(){
 	X[0][N] = delta * gaussrand();
 	X[N][0] = delta * gaussrand();
 	X[N][N] = delta * gaussrand();
+	// float hausdorff = 3 - (log(N)/log(Stage));
+	float hausdorff = 0.84;
 
 	D = N;
 	d = N/2;
 
 	for (Stage = 1; Stage < MAX_LEVEL + 1; ++Stage){
 		// "going from grid type I to type II"
-		float hausdorff = 3 - (log(N)/log(Stage));
 		delta = delta * pow(0.5, 0.5 * hausdorff);
 		
 		// "interpolate and offset mid points"
 			// it is ambiguous whether this is supposed to run on the 1st iteration, hence the +1 in the stop condition
+		std::cout << "1\n";
 		for (x = d; x < N - d + 1; x+=D){ 
 			for (y = d; y < N - d + 1; y+=D){ 
 				X[x][y] =f4(delta, X[x+d][y+d],X[x+d][y-d],X[x-d][y+d], X[x-d][y-d]);
 			}
 		}
 		// "displace existing points"
+		std::cout << "2\n";
 		for (x = 0; x < N+1; x+=D){
 			for (y = 0; y < N+1; y+=D){
 				X[x][y] = X[x][y] + delta * gaussrand();
@@ -75,6 +82,7 @@ int main(){
 		// "going from grid type II to type I"
 		delta = delta * pow(0.5, 0.5 * hausdorff);
 		// "interpolate and offset mid points at boundary"
+		std::cout << "3\n";
 		for (x = d; x < N - d + 1; x+=D){
 			X[x][0] = f3 (delta , X[x+d][0],X[x-d][0],X[x][d]); 
 			X[x][N] = f3 (delta , X[x+d][N],X[x-d][N],X[x][N-d]); 
@@ -82,12 +90,13 @@ int main(){
 			X[N][x] = f3 (delta , X[N][x+d],X[N][x-d],X[N-d][x]);
 		}
 		// "interpolate and offset mid points in interior"
+		std::cout << "4\n";
 		for (x = d; x < N - d + 1; x+=D){ 
 			for (y = D; y < N - d + 1; y+=D){ 
 				X[x][y] =f4(delta, X[x][y+d], X[x][y-d],X[x+d][y],X[x-d][y]);
 			}
 		}
-
+		std::cout << "5\n";
 		for (x = D; x < N - d + 1; x+=D){ 
 			for (y = d; y < N - d + 1; y+=D){ 
 				X[x][y] =f4(delta, X[x][y+d], X[x][y-d],X[x+d][y],X[x-d][y]);
@@ -95,11 +104,13 @@ int main(){
 		}
 
 		// "displace existing points"
+		std::cout << "6\n";
 		for (x =0; x < N+1; x+=D){
-			for (y =0; y < N+1; x+=D){
+			for (y =0; y < N+1; y+=D){
 				X[x][y] = X[x][y] + delta *gaussrand();
 			}
 		}
+		std::cout << "7\n";
 		for (x = d; x < N - d + 1; x+=D){
 			for (y = d; y < N - d + 1; y +=D){
 				X[x][y] = X[x][y] + delta * gaussrand();
@@ -108,5 +119,14 @@ int main(){
 		// " prepare for next level"
 		D = D/2;
 		d = d/2;
+		std::cout << Stage << std::endl;
 	}
+	std::cout << std::fixed;
+	std::cout << std::setprecision(3);
+	for (int i = 0; i < 33; ++i)
+		{
+			for (int j = 0; j < 33; ++j)
+			std::cout << X[i][j] << ' ';
+		std::cout << std::endl;
+		}
 }
