@@ -37,7 +37,7 @@ float f4(float delta, float x0, float x1, float x2, float x3) {
 
 int main(){
 	srand(10);
-    std::cout << gaussrand() << std::endl;
+    //std::cout << gaussrand() << std::endl;
 	int i, Stage;
 	float delta; // "standard deviation for current level"
 	int x, y, y0, D, d; // "indexing variables"
@@ -66,14 +66,14 @@ int main(){
 		
 		// "interpolate and offset mid points"
 			// it is ambiguous whether this is supposed to run on the 1st iteration, hence the +1 in the stop condition
-		std::cout << "1\n";
+		//std::cout << "1\n";
 		for (x = d; x < N - d + 1; x+=D){ 
 			for (y = d; y < N - d + 1; y+=D){ 
 				X[x][y] =f4(delta, X[x+d][y+d],X[x+d][y-d],X[x-d][y+d], X[x-d][y-d]);
 			}
 		}
 		// "displace existing points"
-		std::cout << "2\n";
+		//std::cout << "2\n";
 		for (x = 0; x < N+1; x+=D){
 			for (y = 0; y < N+1; y+=D){
 				X[x][y] = X[x][y] + delta * gaussrand();
@@ -82,7 +82,7 @@ int main(){
 		// "going from grid type II to type I"
 		delta = delta * pow(0.5, 0.5 * hausdorff);
 		// "interpolate and offset mid points at boundary"
-		std::cout << "3\n";
+		//std::cout << "3\n";
 		for (x = d; x < N - d + 1; x+=D){
 			X[x][0] = f3 (delta , X[x+d][0],X[x-d][0],X[x][d]); 
 			X[x][N] = f3 (delta , X[x+d][N],X[x-d][N],X[x][N-d]); 
@@ -90,13 +90,13 @@ int main(){
 			X[N][x] = f3 (delta , X[N][x+d],X[N][x-d],X[N-d][x]);
 		}
 		// "interpolate and offset mid points in interior"
-		std::cout << "4\n";
+		//std::cout << "4\n";
 		for (x = d; x < N - d + 1; x+=D){ 
 			for (y = D; y < N - d + 1; y+=D){ 
 				X[x][y] =f4(delta, X[x][y+d], X[x][y-d],X[x+d][y],X[x-d][y]);
 			}
 		}
-		std::cout << "5\n";
+		//std::cout << "5\n";
 		for (x = D; x < N - d + 1; x+=D){ 
 			for (y = d; y < N - d + 1; y+=D){ 
 				X[x][y] =f4(delta, X[x][y+d], X[x][y-d],X[x+d][y],X[x-d][y]);
@@ -104,13 +104,13 @@ int main(){
 		}
 
 		// "displace existing points"
-		std::cout << "6\n";
+		//std::cout << "6\n";
 		for (x =0; x < N+1; x+=D){
 			for (y =0; y < N+1; y+=D){
 				X[x][y] = X[x][y] + delta *gaussrand();
 			}
 		}
-		std::cout << "7\n";
+		//std::cout << "7\n";
 		for (x = d; x < N - d + 1; x+=D){
 			for (y = d; y < N - d + 1; y +=D){
 				X[x][y] = X[x][y] + delta * gaussrand();
@@ -119,14 +119,46 @@ int main(){
 		// " prepare for next level"
 		D = D/2;
 		d = d/2;
-		std::cout << Stage << std::endl;
+		//std::cout << Stage << std::endl;
 	}
-	std::cout << std::fixed;
-	std::cout << std::setprecision(3);
-	for (int i = 0; i < 33; ++i)
-		{
-			for (int j = 0; j < 33; ++j)
-			std::cout << X[i][j] << ' ';
-		std::cout << std::endl;
+	//std::cout << std::fixed;
+	//std::cout << std::setprecision(3);
+	// for (int i = 0; i < 33; ++i)
+	// {
+	// 	for (int j = 0; j < 33; ++j)
+	// 		//std::cout << X[i][j] << ' ';
+	// 	//std::cout << std::endl;
+	// }
+	
+	unsigned int vertex_count = 0;
+	std::cout << "Display \"display\" \"Screen\" \"rgbdouble\"" << std::endl;
+	std::cout << "Format 640 480" << std::endl;
+	std::cout << "CameraEye   0.0 0.0 20.0" << std::endl;
+	std::cout << "CameraAt    16.0 16.0 3.0" << std::endl;
+	std::cout << "CameraUp   0 0 1" << std::endl;
+	std::cout << "#CameraFOV  60.0" << std::endl;
+	std::cout << "Background 0 0.3 0.7" << std::endl;
+	std::cout << "WorldBegin" << std::endl;
+	std::cout << "PointLight 0 0 20 1.0 1.0 1.0  100" << std::endl;
+	std::cout << "Color 1 0 0 " << std::endl;
+	std::cout << "PolySet \"PC\"" << std::endl;
+	std::cout << pow(N,2) * 4 << std::endl << pow(N,2) << std::endl;
+
+	for (size_t i = 0; i < 32; ++i) // size is hardcoded as reminder that H is also hardcoded in main logic.
+							 // if you want to change this, be sure that H and the size of the array N are also changed and not hardcoded
+	{
+		for (size_t j = 0; j < 32; ++j){
+			std::cout << i << ' ' << j << ' ' << X[i][j] <<std::endl;
+			std::cout << i+1 << ' ' << j << ' ' << X[i+1][j] <<std::endl;
+			std::cout << i+1 << ' ' << j+1 << ' ' << X[i+1][j+1] <<std::endl;
+			std::cout << i << ' ' << j+1 << ' ' << X[i][j+1] <<std::endl;
+			vertex_count +=4;
 		}
+	}
+	for (size_t i = 0; i < vertex_count; ++i){
+		std::cout << i << ' ';
+		if ((i+1)%4 == 0)
+		std::cout << -1 << std::endl;
+	}
+	std::cout << "WorldEnd" << std::endl;
 }
