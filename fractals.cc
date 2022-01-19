@@ -36,7 +36,7 @@ float f4(float delta, float x0, float x1, float x2, float x3) {
 }
 
 int main(){
-	srand(10);
+	//srand(10);
     //std::cout << gaussrand() << std::endl;
 	int i, Stage;
 	float delta; // "standard deviation for current level"
@@ -48,6 +48,7 @@ int main(){
 	// BEGIN:
 	const int N = pow(2,MAX_LEVEL);
 	float X[33][33]; // N + 1...
+	float Colors[33][33][3]; // rgb values pertaining to each vertex in array X
 	// "set the initial random corners"
 	delta = SIGMA;
 	X[0][0] = delta * gaussrand();
@@ -130,16 +131,58 @@ int main(){
 	// 	//std::cout << std::endl;
 	// }
 	
+	// colorization for standard deviation of 2:
+	for (size_t i=0; i < 33; ++i)
+		for (size_t j=0; j < 33; ++j){
+			if (X[i][j] <= -4 ){
+				C[i][j][0] = 0; //R
+				C[i][j][1] = 0; //G
+				C[i][j][2] = 1; //B
+			}
+			else if(X[i][j] <= -2){
+				C[i][j][0] = 0.3; //R
+				C[i][j][1] = 0.3; //G
+				C[i][j][2] = 1; //B
+			}
+			else if (X[i][j] <= -1){
+				C[i][j][0] = 0.6; //R
+				C[i][j][1] = 0.6; //G
+				C[i][j][2] = 1; //B
+			}
+			else if (X[i][j] <= 0){
+				C[i][j][0] = 0.75; //R
+				C[i][j][1] = 0.75; //G
+				C[i][j][2] = 1; //B
+			}
+			else if (X[i][j] < 1){ //sand
+				C[i][j][0] = 0.96; //R
+				C[i][j][1] = 0.93; //G
+				C[i][j][2] = 0.81; //B
+			}
+			else{ // green to white linear interpolation:
+				float rb_color;
+				if (X[i][j]>6 ) rb_color = 6; //limit coloration to cover the positive 0.1% of binomial distribution (SIGMA * 3)
+				else rb_color = X[i][j];
+				rb_color = (X[i][j] - 1) / 5// turning Z value to a fraction to be used in linear interpolation
+				C[i][j][0] = rb_color; // R
+				C[i][j][1] = 1; // G
+				C[i][j][2] = rb_color; // B
+			}
+		}
+
+
 	unsigned int vertex_count = 0;
 	std::cout << "Display \"display\" \"Screen\" \"rgbdouble\"" << std::endl;
 	std::cout << "Format 640 480" << std::endl;
 	std::cout << "CameraEye   0.0 0.0 20.0" << std::endl;
 	std::cout << "CameraAt    16.0 16.0 3.0" << std::endl;
 	std::cout << "CameraUp   0 0 1" << std::endl;
-	std::cout << "#CameraFOV  60.0" << std::endl;
 	std::cout << "Background 0 0.3 0.7" << std::endl;
 	std::cout << "WorldBegin" << std::endl;
 	std::cout << "PointLight 0 0 20 1.0 1.0 1.0  100" << std::endl;
+	std::cout << "FarLight 0 0 20  1.0  1.0  1.0  1.0" << std::endl;
+	std::cout << "Ka 0.3" << std::endl;
+	std::cout << "Kd 0.7" << std::endl;
 	std::cout << "Color 1 0 0 " << std::endl;
 	std::cout << "PolySet \"PC\"" << std::endl;
 	std::cout << pow(N,2) * 4 << std::endl << pow(N,2) << std::endl;
@@ -148,10 +191,10 @@ int main(){
 							 // if you want to change this, be sure that H and the size of the array N are also changed and not hardcoded
 	{
 		for (size_t j = 0; j < 32; ++j){
-			std::cout << i << ' ' << j << ' ' << X[i][j] <<std::endl;
-			std::cout << i+1 << ' ' << j << ' ' << X[i+1][j] <<std::endl;
-			std::cout << i+1 << ' ' << j+1 << ' ' << X[i+1][j+1] <<std::endl;
-			std::cout << i << ' ' << j+1 << ' ' << X[i][j+1] <<std::endl;
+			std::cout << i << ' ' << j << ' ' << X[i][j] 	     << ' ' << C[i][j][0] << ' ' << C[i][j][1] << ' ' << C[i][j][2] << std::endl;
+			std::cout << i+1 << ' ' << j << ' ' << X[i+1][j] 	 << ' ' << C[i+1][j][0] << ' ' << C[i+1][j][1] << ' ' << C[i+1][j][2] << std::endl;
+			std::cout << i+1 << ' ' << j+1 << ' ' << X[i+1][j+1] << ' ' << C[i+1][j+1][0] << ' ' << C[i+1][j+1][1] << ' ' << C[i+1][j+1][2] << std::endl;
+			std::cout << i << ' ' << j+1 << ' ' << X[i][j+1] 	 << ' ' << C[i][j+1][0] << ' ' << C[i][j+1][1] << ' ' << C[i][j+1][2] << std::endl;
 			vertex_count +=4;
 		}
 	}
