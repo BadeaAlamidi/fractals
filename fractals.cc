@@ -135,45 +135,45 @@ int main(){
 	for (size_t i=0; i < 33; ++i)
 		for (size_t j=0; j < 33; ++j){
 			if (X[i][j] <= -4 ){
-				C[i][j][0] = 0; //R
-				C[i][j][1] = 0; //G
-				C[i][j][2] = 1; //B
+				Colors[i][j][0] = 0; //R
+				Colors[i][j][1] = 0; //G
+				Colors[i][j][2] = 1; //B
 			}
 			else if(X[i][j] <= -2){
-				C[i][j][0] = 0.3; //R
-				C[i][j][1] = 0.3; //G
-				C[i][j][2] = 1; //B
+				Colors[i][j][0] = 0.3; //R
+				Colors[i][j][1] = 0.3; //G
+				Colors[i][j][2] = 1; //B
 			}
 			else if (X[i][j] <= -1){
-				C[i][j][0] = 0.6; //R
-				C[i][j][1] = 0.6; //G
-				C[i][j][2] = 1; //B
+				Colors[i][j][0] = 0.6; //R
+				Colors[i][j][1] = 0.6; //G
+				Colors[i][j][2] = 1; //B
 			}
 			else if (X[i][j] <= 0){
-				C[i][j][0] = 0.75; //R
-				C[i][j][1] = 0.75; //G
-				C[i][j][2] = 1; //B
+				Colors[i][j][0] = 0.75; //R
+				Colors[i][j][1] = 0.75; //G
+				Colors[i][j][2] = 1; //B
 			}
 			else if (X[i][j] < 1){ //sand
-				C[i][j][0] = 0.96; //R
-				C[i][j][1] = 0.93; //G
-				C[i][j][2] = 0.81; //B
+				Colors[i][j][0] = 0.96; //R
+				Colors[i][j][1] = 0.93; //G
+				Colors[i][j][2] = 0.81; //B
 			}
 			else{ // green to white linear interpolation:
 				float rb_color;
 				if (X[i][j]>6 ) rb_color = 6; //limit coloration to cover the positive 0.1% of binomial distribution (SIGMA * 3)
 				else rb_color = X[i][j];
-				rb_color = (X[i][j] - 1) / 5// turning Z value to a fraction to be used in linear interpolation
-				C[i][j][0] = rb_color; // R
-				C[i][j][1] = 1; // G
-				C[i][j][2] = rb_color; // B
+				rb_color = (X[i][j] - 1) / 5; // turning Z value to a fraction to be used in linear interpolation
+				Colors[i][j][0] = rb_color; // R
+				Colors[i][j][1] = 1; // G
+				Colors[i][j][2] = rb_color; // B
 			}
 		}
 
 
 	unsigned int vertex_count = 0;
 	std::cout << "Display \"display\" \"Screen\" \"rgbdouble\"" << std::endl;
-	std::cout << "Format 640 480" << std::endl;
+	std::cout << "Format 1280 960" << std::endl;
 	std::cout << "CameraEye   0.0 0.0 20.0" << std::endl;
 	std::cout << "CameraAt    16.0 16.0 3.0" << std::endl;
 	std::cout << "CameraUp   0 0 1" << std::endl;
@@ -191,10 +191,10 @@ int main(){
 							 // if you want to change this, be sure that H and the size of the array N are also changed and not hardcoded
 	{
 		for (size_t j = 0; j < 32; ++j){
-			std::cout << i << ' ' << j << ' ' << X[i][j] 	     << ' ' << C[i][j][0] << ' ' << C[i][j][1] << ' ' << C[i][j][2] << std::endl;
-			std::cout << i+1 << ' ' << j << ' ' << X[i+1][j] 	 << ' ' << C[i+1][j][0] << ' ' << C[i+1][j][1] << ' ' << C[i+1][j][2] << std::endl;
-			std::cout << i+1 << ' ' << j+1 << ' ' << X[i+1][j+1] << ' ' << C[i+1][j+1][0] << ' ' << C[i+1][j+1][1] << ' ' << C[i+1][j+1][2] << std::endl;
-			std::cout << i << ' ' << j+1 << ' ' << X[i][j+1] 	 << ' ' << C[i][j+1][0] << ' ' << C[i][j+1][1] << ' ' << C[i][j+1][2] << std::endl;
+			std::cout << i << ' ' << j << ' ' << X[i][j] 	     << ' ' << Colors[i][j][0] << ' ' << Colors[i][j][1] << ' ' << Colors[i][j][2] << std::endl;
+			std::cout << i+1 << ' ' << j << ' ' << X[i+1][j] 	 << ' ' << Colors[i+1][j][0] << ' ' << Colors[i+1][j][1] << ' ' << Colors[i+1][j][2] << std::endl;
+			std::cout << i+1 << ' ' << j+1 << ' ' << X[i+1][j+1] << ' ' << Colors[i+1][j+1][0] << ' ' << Colors[i+1][j+1][1] << ' ' << Colors[i+1][j+1][2] << std::endl;
+			std::cout << i << ' ' << j+1 << ' ' << X[i][j+1] 	 << ' ' << Colors[i][j+1][0] << ' ' << Colors[i][j+1][1] << ' ' << Colors[i][j+1][2] << std::endl;
 			vertex_count +=4;
 		}
 	}
