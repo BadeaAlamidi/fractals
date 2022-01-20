@@ -36,12 +36,14 @@ float f4(float delta, float x0, float x1, float x2, float x3) {
 }
 
 int main(int argc, char** argv){
-	if (argc < 1){
+	if (argc < 2){
 		std::cerr << "Usage: ./fractals seed" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	
-	srand(1);
+	int seed = atoi(argv[1]);
+
+	srand(seed);
     //std::cout << gaussrand() << std::endl;
 	int i, Stage;
 	float delta; // "standard deviation for current level"
