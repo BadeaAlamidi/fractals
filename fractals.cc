@@ -35,8 +35,13 @@ float f4(float delta, float x0, float x1, float x2, float x3) {
 	return (x0 + x1 + x2 + x3) / 4 + delta * gaussrand();
 }
 
-int main(){
-	//srand(10);
+int main(int argc, char** argv){
+	if (argc < 1){
+		std::cerr << "Usage: ./fractals seed" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	srand(1);
     //std::cout << gaussrand() << std::endl;
 	int i, Stage;
 	float delta; // "standard deviation for current level"
@@ -174,7 +179,7 @@ int main(){
 	unsigned int vertex_count = 0;
 	std::cout << "Display \"display\" \"Screen\" \"rgbdouble\"" << std::endl;
 	std::cout << "Format 1280 960" << std::endl;
-	std::cout << "CameraEye   0.0 0.0 20.0" << std::endl;
+	std::cout << "CameraEye   0.0 0.0 5.0" << std::endl;
 	std::cout << "CameraAt    16.0 16.0 3.0" << std::endl;
 	std::cout << "CameraUp   0 0 1" << std::endl;
 	std::cout << "Background 0 0.3 0.7" << std::endl;
