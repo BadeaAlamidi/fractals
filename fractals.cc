@@ -7,6 +7,7 @@
 
 #define MAX_LEVEL 5
 #define SIGMA 2
+//#define SIGMA 5
 
 // stolen from http://c-faq.com/lib/gaussian.html solution 2
 double gaussrand()
@@ -181,34 +182,40 @@ int main(int argc, char** argv){
 	unsigned int vertex_count = 0;
 	std::cout << "Display \"display\" \"Screen\" \"rgbdouble\"" << std::endl;
 	std::cout << "Format 1280 960" << std::endl;
-	std::cout << "CameraEye   0.0 0.0 5.0" << std::endl;
+	std::cout << "CameraEye   0.0 0.0 14.0" << std::endl;
 	std::cout << "CameraAt    16.0 16.0 3.0" << std::endl;
 	std::cout << "CameraUp   0 0 1" << std::endl;
 	std::cout << "Background 0 0.3 0.7" << std::endl;
 	std::cout << "WorldBegin" << std::endl;
-	std::cout << "PointLight 0 0 20 1.0 1.0 1.0  100" << std::endl;
-	std::cout << "FarLight 0 0 20  1.0  1.0  1.0  1.0" << std::endl;
+	//std::cout << "PointLight 16 16 20 1.0 1.0 1.0  100" << std::endl;
+	std::cout << "FarLight 16 16 20  1.0  1.0  1.0  0.1" << std::endl;
 	std::cout << "Ka 0.3" << std::endl;
 	std::cout << "Kd 0.7" << std::endl;
 	std::cout << "Color 1 0 0 " << std::endl;
 	std::cout << "PolySet \"PC\"" << std::endl;
-	std::cout << pow(N,2) * 4 << std::endl << pow(N,2) << std::endl;
+	std::cout << pow(N,2) * 4 << std::endl << pow(N,2)*2 << std::endl;
 
 	for (size_t i = 0; i < 32; ++i) // size is hardcoded as reminder that H is also hardcoded in main logic.
 							 // if you want to change this, be sure that H and the size of the array N are also changed and not hardcoded
 	{
 		for (size_t j = 0; j < 32; ++j){
 			std::cout << i << ' ' << j << ' ' << X[i][j] 	     << ' ' << Colors[i][j][0] << ' ' << Colors[i][j][1] << ' ' << Colors[i][j][2] << std::endl;
-			std::cout << i+1 << ' ' << j << ' ' << X[i+1][j] 	 << ' ' << Colors[i+1][j][0] << ' ' << Colors[i+1][j][1] << ' ' << Colors[i+1][j][2] << std::endl;
-			std::cout << i+1 << ' ' << j+1 << ' ' << X[i+1][j+1] << ' ' << Colors[i+1][j+1][0] << ' ' << Colors[i+1][j+1][1] << ' ' << Colors[i+1][j+1][2] << std::endl;
 			std::cout << i << ' ' << j+1 << ' ' << X[i][j+1] 	 << ' ' << Colors[i][j+1][0] << ' ' << Colors[i][j+1][1] << ' ' << Colors[i][j+1][2] << std::endl;
+			std::cout << i+1 << ' ' << j+1 << ' ' << X[i+1][j+1] << ' ' << Colors[i+1][j+1][0] << ' ' << Colors[i+1][j+1][1] << ' ' << Colors[i+1][j+1][2] << std::endl;
+			std::cout << i+1 << ' ' << j << ' ' << X[i+1][j] 	 << ' ' << Colors[i+1][j][0] << ' ' << Colors[i+1][j][1] << ' ' << Colors[i+1][j][2] << std::endl;
 			vertex_count +=4;
 		}
 	}
-	for (size_t i = 0; i < vertex_count; ++i){
-		std::cout << i << ' ';
-		if ((i+1)%4 == 0)
-		std::cout << -1 << std::endl;
+	// face description for rd_view scene
+//	for (size_t i = 0; i < vertex_count; ++i){
+//		std::cout << i << ' ';
+//		if ((i+1)%4 == 0)
+//		std::cout << -1 << std::endl;
+//	}
+	for (size_t i = 0; i < vertex_count; i+=4)
+	{
+		std::cout << i << ' ' << i+1 << ' ' << i+3 << ' ' << -1 << std::endl;
+		std::cout << i+1 << ' ' << i+2 << ' ' << i+3 << ' ' << -1 << std::endl;
 	}
 	std::cout << "WorldEnd" << std::endl;
 }
