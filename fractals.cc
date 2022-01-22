@@ -57,6 +57,7 @@ int main(int argc, char** argv){
 	const int N = pow(2,MAX_LEVEL);
 	float X[33][33]; // N + 1...
 	float Colors[33][33][3]; // rgb values pertaining to each vertex in array X
+	float Normals[32][32][3]; // per-vertex normal for each vertex in terrain that is surrounded by other vertices from above and to the right
 	// "set the initial random corners"
 	delta = SIGMA;
 	X[0][0] = delta * gaussrand();
@@ -178,6 +179,18 @@ int main(int argc, char** argv){
 			}
 		}
 
+	// normal calculation:
+	for (int i = 0; i < 32; ++i)
+		for (int j = 0; j < 32; ++j){
+				float K1;
+				float K2;
+				K1 = X[i][j] - X[i][j+1];
+				K2 = X[i][j] - X[i+1][j];
+				
+				Normals[i][j][0]=K2 - K1;
+				Normals[i][j][1]=K1 - K2;
+				Normals[i][j][2]=0;
+		}
 
 	unsigned int vertex_count = 0;
 	std::cout << "Display \"display\" \"Screen\" \"rgbdouble\"" << std::endl;
@@ -192,17 +205,17 @@ int main(int argc, char** argv){
 	std::cout << "Ka 0.3" << std::endl;
 	std::cout << "Kd 0.7" << std::endl;
 	std::cout << "Color 1 0 0 " << std::endl;
-	std::cout << "PolySet \"PC\"" << std::endl;
+	std::cout << "PolySet \"PCN\"" << std::endl;
 	std::cout << pow(N,2) * 4 << std::endl << pow(N,2)*2 << std::endl;
 
 	for (size_t i = 0; i < 32; ++i) // size is hardcoded as reminder that H is also hardcoded in main logic.
 							 // if you want to change this, be sure that H and the size of the array N are also changed and not hardcoded
 	{
 		for (size_t j = 0; j < 32; ++j){
-			std::cout << i << ' ' << j << ' ' << X[i][j] 	     << ' ' << Colors[i][j][0] << ' ' << Colors[i][j][1] << ' ' << Colors[i][j][2] << std::endl;
-			std::cout << i << ' ' << j+1 << ' ' << X[i][j+1] 	 << ' ' << Colors[i][j+1][0] << ' ' << Colors[i][j+1][1] << ' ' << Colors[i][j+1][2] << std::endl;
-			std::cout << i+1 << ' ' << j+1 << ' ' << X[i+1][j+1] << ' ' << Colors[i+1][j+1][0] << ' ' << Colors[i+1][j+1][1] << ' ' << Colors[i+1][j+1][2] << std::endl;
-			std::cout << i+1 << ' ' << j << ' ' << X[i+1][j] 	 << ' ' << Colors[i+1][j][0] << ' ' << Colors[i+1][j][1] << ' ' << Colors[i+1][j][2] << std::endl;
+			std::cout << i << ' ' << j << ' ' << X[i][j] 	     << ' ' << Colors[i][j][0] << ' ' << Colors[i][j][1] << ' ' << Colors[i][j][2] 		 	   << ' ' << Normals[i][j][0] <<  ' ' << Normals[i][j][1] <<  ' ' << Normals[i][j][2] << std::endl;
+			std::cout << i << ' ' << j+1 << ' ' << X[i][j+1] 	 << ' ' << Colors[i][j+1][0] << ' ' << Colors[i][j+1][1] << ' ' << Colors[i][j+1][2] 	   << ' ' << Normals[i][j+1][0] <<  ' ' << Normals[i][j+1][1] <<  ' ' << Normals[i][j+1][2] << std::endl;
+			std::cout << i+1 << ' ' << j+1 << ' ' << X[i+1][j+1] << ' ' << Colors[i+1][j+1][0] << ' ' << Colors[i+1][j+1][1] << ' ' << Colors[i+1][j+1][2] << ' ' << Normals[i+1][j+1][0] <<  ' ' << Normals[i+1][j+1][1] <<  ' ' << Normals[i+1][j+1][2] << std::endl;
+			std::cout << i+1 << ' ' << j << ' ' << X[i+1][j] 	 << ' ' << Colors[i+1][j][0] << ' ' << Colors[i+1][j][1] << ' ' << Colors[i+1][j][2] 	   << ' ' << Normals[i+1][j][0] <<  ' ' << Normals[i+1][j][1] <<  ' ' << Normals[i+1][j][2] << std::endl;
 			vertex_count +=4;
 		}
 	}
