@@ -182,14 +182,17 @@ int main(int argc, char** argv){
 	// normal calculation:
 	for (int i = 0; i < 32; ++i)
 		for (int j = 0; j < 32; ++j){
-				float K1;
-				float K2;
-				K1 = X[i][j] - X[i][j+1];
-				K2 = X[i][j] - X[i+1][j];
+				//I:0 J:1 K1
+				//I:1 J:0 K2
+				//K = 0 - 1
+				//J = +K1 - 0
+				//I = +K2 - 0
+				float K1 = X[i][j] - X[i][j+1];
+				float K2 = X[i][j] - X[i+1][j];
 				
-				Normals[i][j][0]=K2 - K1;
-				Normals[i][j][1]=K1 - K2;
-				Normals[i][j][2]=0;
+				Normals[i][j][0]=K2;
+				Normals[i][j][1]=K1;
+				Normals[i][j][2]=-1;
 		}
 
 	unsigned int vertex_count = 0;
