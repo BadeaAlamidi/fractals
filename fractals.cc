@@ -57,7 +57,7 @@ int main(int argc, char** argv){
 	const int N = pow(2,MAX_LEVEL);
 	float X[33][33]; // N + 1...
 	float Colors[33][33][3]; // rgb values pertaining to each vertex in array X
-	float Normals[32][32][3]; // per-vertex normal for each vertex in terrain that is surrounded by other vertices from above and to the right
+	float Normals[33][33][3]; // per-vertex normal for each vertex in terrain that is surrounded by other vertices from above and to the right
 	// "set the initial random corners"
 	delta = SIGMA;
 	X[0][0] = delta * gaussrand();
@@ -194,12 +194,29 @@ int main(int argc, char** argv){
 //				Normals[i][j][1]=K1;
 //				Normals[i][j][2]=-1;
 //		}
+	// "normal" calculation (uses the same logic from marching cubes)
 	for (size_t i = 1; i < 32; ++i){
 		for (size_t j = 1; j < 32; ++j){
 			Normals[i][j][0] = (X[i+1][j] - X[i-1][j]) / 2;
 			Normals[i][j][1] = (X[i][j+1] - X[i][j-1]) / 2;
 			Normals[i][j][2] = -1;
 		}
+		// sides
+		Normals[i][0][0]  = (X[i+1][0] - X[i-1][0]) / 2;
+		Normals[i][0][1]  = X[i][1] - X[i][0];
+		Normals[i][0][2]  = -1;
+
+		Normals[i][32][0] = (X[i+1][32] - X[i-1][32]) / 2;
+		Normals[i][32][1] = X[i][32] - X[i][31];
+		Normals[i][32][2] = -1;
+
+		Normals[0][i][0]  = X[1][i] - X[0][i];
+		Normals[0][i][1]  = (X[0][i+1] - X[0][i-1]) / 2;
+		Normals[0][i][2]  = -1;
+
+		Normals[32][i][0] = X[32][i] - X[31][i];
+		Normals[32][i][1] = (X[32][i+1] - X[32][i-1]) / 2;
+		Normals[32][i][2] = -1;
 	}
 
 	unsigned int vertex_count = 0;
@@ -211,7 +228,7 @@ int main(int argc, char** argv){
 	std::cout << "Background 0 0.3 0.7" << std::endl;
 	std::cout << "WorldBegin" << std::endl;
 	//std::cout << "PointLight 16 16 20 1.0 1.0 1.0  100" << std::endl;
-	std::cout << "FarLight 16 16 20  1.0  1.0  1.0  0.1" << std::endl;
+	std::cout << "FarLight 16 16 20  1.0  1.0  1.0  1" << std::endl;
 	std::cout << "Ka 0.3" << std::endl;
 	std::cout << "Kd 0.7" << std::endl;
 	std::cout << "Color 1 0 0 " << std::endl;
