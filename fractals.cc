@@ -180,20 +180,27 @@ int main(int argc, char** argv){
 		}
 
 	// normal calculation:
-	for (int i = 0; i < 32; ++i)
-		for (int j = 0; j < 32; ++j){
-				//I:0 J:1 K1
-				//I:1 J:0 K2
-				//K = 0 - 1
-				//J = +K1 - 0
-				//I = +K2 - 0
-				float K1 = X[i][j] - X[i][j+1];
-				float K2 = X[i][j] - X[i+1][j];
-				
-				Normals[i][j][0]=K2;
-				Normals[i][j][1]=K1;
-				Normals[i][j][2]=-1;
+//	for (int i = 0; i < 32; ++i)
+//		for (int j = 0; j < 32; ++j){
+//				//I:0 J:1 K1
+//				//I:1 J:0 K2
+//				//K = 0 - 1
+//				//J = +K1 - 0
+//				//I = +K2 - 0
+//				float K1 = X[i][j+1] - X[i][j];
+//				float K2 = X[i+1][j] - X[i][j];
+//				
+//				Normals[i][j][0]=K2;
+//				Normals[i][j][1]=K1;
+//				Normals[i][j][2]=-1;
+//		}
+	for (size_t i = 1; i < 32; ++i){
+		for (size_t j = 1; j < 32; ++j){
+			Normals[i][j][0] = (X[i+1][j] - X[i-1][j]) / 2;
+			Normals[i][j][1] = (X[i][j+1] - X[i][j-1]) / 2;
+			Normals[i][j][2] = -1;
 		}
+	}
 
 	unsigned int vertex_count = 0;
 	std::cout << "Display \"display\" \"Screen\" \"rgbdouble\"" << std::endl;
