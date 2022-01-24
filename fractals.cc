@@ -9,6 +9,17 @@
 #define SIGMA 2
 //#define SIGMA 5
 
+// used to dereference one-dimensional array as a 2d array. the width is equal to how many elements exist in a row
+inline int index2D(int column, int row, int width){
+	return column * width + row;
+}
+
+// used to dereference one-dimensional arrays as a 3d array. the width is equal to how many elements exist in a row
+inline int index3D(int column, int row, int plane, int column_width, int row_width){
+	return (column*column_width) + (row*row_width) + plane;
+}
+// [1][2][2] 33 + 5 + 2 = 40
+
 // stolen from http://c-faq.com/lib/gaussian.html solution 2
 double gaussrand()
 {
@@ -37,9 +48,13 @@ float f4(float delta, float x0, float x1, float x2, float x3) {
 }
 
 int main(int argc, char** argv){
+	int max_level = 5; // determines
 	if (argc < 2){
-		std::cerr << "Usage: ./fractals seed" << std::endl;
+		std::cerr << "Usage: ./fractals seed max_level(optional)" << std::endl;
 		exit(EXIT_FAILURE);
+	}
+	else if (argc == 3){
+		max_level = atoi(argv[2]);;;;;;;;;;;;
 	}
 	
 	int seed = atoi(argv[1]);
@@ -54,23 +69,28 @@ int main(int argc, char** argv){
 	(void) i; (void) y0;
 
 	// BEGIN:
-	const int N = pow(2,MAX_LEVEL);
-	float X[33][33]; // N + 1...
-	float Colors[33][33][3]; // rgb values pertaining to each vertex in array X
-	float Normals[33][33][3]; // per-vertex normal for each vertex in terrain that is surrounded by other vertices from above and to the right
+	const int N = pow(2,max_level);
+	// float X[33][33]; // N + 1...
+	float* X = new float[(N+1) * (N+1)];
+	//float Colors[33][33][3]; // rgb values pertaining to each vertex in array X
+	float * Colors = new float[(N+1) * (N+1) * 3];
+	//float Normals[33][33][3]; // per-vertex normal for each vertex in terrain that is surrounded by other vertices from above and to the right
+	float * Normals = new float[(N+1) * (N+1) * 3];
+
 	// "set the initial random corners"
 	delta = SIGMA;
-	X[0][0] = delta * gaussrand();
-	X[0][N] = delta * gaussrand();
-	X[N][0] = delta * gaussrand();
-	X[N][N] = delta * gaussrand();
-	// float hausdorff = 3 - (log(N)/log(Stage));
-	float hausdorff = 0.84;
+	X[index2D(0,0,N+1)] = delta * gaussrand();
+	X[index2D(0,N,N+1)] = delta * gaussrand();
+	X[index2D(N,0,N+1)] = delta * gaussrand();
+	X[index2D(N,N,N+1)] = delta * gaussrand();
+	
+	float hausdorff = 3 - (log(N)/log(max_level));
+	//float hausdorff = 0.84;
 
 	D = N;
 	d = N/2;
 
-	for (Stage = 1; Stage < MAX_LEVEL + 1; ++Stage){
+	for (Stage = 1; Stage < max_level + 1; ++Stage){
 		// "going from grid type I to type II"
 		delta = delta * pow(0.5, 0.5 * hausdorff);
 		
@@ -79,14 +99,14 @@ int main(int argc, char** argv){
 		//std::cout << "1\n";
 		for (x = d; x < N - d + 1; x+=D){ 
 			for (y = d; y < N - d + 1; y+=D){ 
-				X[x][y] =f4(delta, X[x+d][y+d],X[x+d][y-d],X[x-d][y+d], X[x-d][y-d]);
+				X[index2D(x,y, N+1)] =f4(delta, X[index2D(x+d,y+d,N+1)],X[index2D(x+d,y-d,N+1)],X[index2D(x-d,y+d,N+1)], X[index2D(x-d,y-d,N+1)]);
 			}
 		}
 		// "displace existing points"
 		//std::cout << "2\n";
 		for (x = 0; x < N+1; x+=D){
 			for (y = 0; y < N+1; y+=D){
-				X[x][y] = X[x][y] + delta * gaussrand();
+				X[index2D(x,y,N+1)] = X[index2D(x,y,N+1)] + delta * gaussrand();
 			}
 		}
 		// "going from grid type II to type I"
@@ -94,22 +114,22 @@ int main(int argc, char** argv){
 		// "interpolate and offset mid points at boundary"
 		//std::cout << "3\n";
 		for (x = d; x < N - d + 1; x+=D){
-			X[x][0] = f3 (delta , X[x+d][0],X[x-d][0],X[x][d]); 
-			X[x][N] = f3 (delta , X[x+d][N],X[x-d][N],X[x][N-d]); 
-			X[0][x] = f3 (delta , X[0][x+d],X[0][x-d],X[d][x]);
-			X[N][x] = f3 (delta , X[N][x+d],X[N][x-d],X[N-d][x]);
+			X[index2D(x,0,N+1)] = f3 (delta , X[index2D(x+d,0,N+1)],X[index2D(x-d,0,N+1)],X[index2D(x,d  , N+1)]); 
+			X[index2D(x,N,N+1)] = f3 (delta , X[index2D(x+d,N,N+1)],X[index2D(x-d,N,N+1)],X[index2D(x,N-d, N+1)]); 
+			X[index2D(0,x,N+1)] = f3 (delta , X[index2D(0,x+d,N+1)],X[index2D(0,x-d,N+1)],X[index2D(d,x,N+1)]);
+			X[index2D(N,x,N+1)] = f3 (delta , X[index2D(N,x+d,N+1)],X[index2D(N,x-d,N+1)],X[index2D(N-d,x,N+1)]);
 		}
 		// "interpolate and offset mid points in interior"
 		//std::cout << "4\n";
 		for (x = d; x < N - d + 1; x+=D){ 
 			for (y = D; y < N - d + 1; y+=D){ 
-				X[x][y] =f4(delta, X[x][y+d], X[x][y-d],X[x+d][y],X[x-d][y]);
+				X[index2D(x,y,N+1)] =f4(delta, X[index2D(x,y+d,N+1)], X[index2D(x,y-d,N+1)],X[index2D(x+d,y,N+1)],X[index2D(x-d,y,N+1)]);
 			}
 		}
 		//std::cout << "5\n";
 		for (x = D; x < N - d + 1; x+=D){ 
 			for (y = d; y < N - d + 1; y+=D){ 
-				X[x][y] =f4(delta, X[x][y+d], X[x][y-d],X[x+d][y],X[x-d][y]);
+				X[index2D(x,y,N+1)] =f4(delta, X[index2D(x,y+d,N+1)], X[index2D(x,y-d,N+1)],X[index2D(x+d,y,N+1)],X[index2D(x-d,y,N+1)]);
 			}
 		}
 
@@ -117,13 +137,13 @@ int main(int argc, char** argv){
 		//std::cout << "6\n";
 		for (x =0; x < N+1; x+=D){
 			for (y =0; y < N+1; y+=D){
-				X[x][y] = X[x][y] + delta *gaussrand();
+				X[index2D(x,y,N+1)] = X[index2D(x,y,N+1)] + delta *gaussrand();
 			}
 		}
 		//std::cout << "7\n";
 		for (x = d; x < N - d + 1; x+=D){
 			for (y = d; y < N - d + 1; y +=D){
-				X[x][y] = X[x][y] + delta * gaussrand();
+				X[index2D(x,y,N+1)] = X[index2D(x,y,N+1)] + delta * gaussrand();
 			}
 		}
 		// " prepare for next level"
@@ -143,39 +163,39 @@ int main(int argc, char** argv){
 	// colorization for standard deviation of 2:
 	for (size_t i=0; i < 33; ++i)
 		for (size_t j=0; j < 33; ++j){
-			if (X[i][j] <= -4 ){
-				Colors[i][j][0] = 0; //R
-				Colors[i][j][1] = 0; //G
-				Colors[i][j][2] = 1; //B
+			if (X[index2D(i, j, N + 1)] <= -4 ){
+				Colors[index3D(i,j,0,N+1,3)] = 0; //R
+				Colors[index3D(i,j,1, N+1,3)] = 0; //G
+				Colors[index3D(i,j,2, N+1,3)] = 1; //B
 			}
-			else if(X[i][j] <= -2){
-				Colors[i][j][0] = 0.3; //R
-				Colors[i][j][1] = 0.3; //G
-				Colors[i][j][2] = 1; //B
+			else if(X[index2D(i,j,N+1)] <= -2){
+				Colors[index3D(i,j,0,N+1,3)] = 0.3; //R
+				Colors[index3D(i,j,1,N+1,3)] = 0.3; //G
+				Colors[index3D(i,j,2,N+1,3)] = 1; //B
 			}
-			else if (X[i][j] <= -1){
-				Colors[i][j][0] = 0.6; //R
-				Colors[i][j][1] = 0.6; //G
-				Colors[i][j][2] = 1; //B
+			else if (X[index2D(i,j, N+1)] <= -1){
+				Colors[index3D(i,j,0,N+1,3)] = 0.6; //R
+				Colors[index3D(i,j,1,N+1,3)] = 0.6; //G
+				Colors[index3D(i,j,2,N+1,3)] = 1; //B
 			}
-			else if (X[i][j] <= 0){
-				Colors[i][j][0] = 0.75; //R
-				Colors[i][j][1] = 0.75; //G
-				Colors[i][j][2] = 1; //B
+			else if (X[index2D(i, j, N + 1)] <= 0){
+				Colors[index3D(i,j,0,N+1,3)] = 0.75; //R
+				Colors[index3D(i,j,1,N+1,3)] = 0.75; //G
+				Colors[index3D(i,j,2,N+1,3)] = 1; //B
 			}
-			else if (X[i][j] < 1){ //sand
-				Colors[i][j][0] = 0.96; //R
-				Colors[i][j][1] = 0.93; //G
-				Colors[i][j][2] = 0.81; //B
+			else if (X[index2D(i, j, N + 1)] < 1){ //sand
+				Colors[index3D(i,j,0,N+1,3)] = 0.96; //R
+				Colors[index3D(i,j,1,N+1,3)] = 0.93; //G
+				Colors[index3D(i,j,2,N+1,3)] = 0.81; //B
 			}
 			else{ // green to white linear interpolation:
 				float rb_color;
-				if (X[i][j]>6 ) rb_color = 6; //limit coloration to cover the positive 0.1% of binomial distribution (SIGMA * 3)
-				else rb_color = X[i][j];
-				rb_color = (X[i][j] - 1) / 5; // turning Z value to a fraction to be used in linear interpolation
-				Colors[i][j][0] = rb_color; // R
-				Colors[i][j][1] = 1; // G
-				Colors[i][j][2] = rb_color; // B
+				if (X[index2D(i, j, N + 1)]>6 ) rb_color = 6; //limit coloration to cover the positive 0.1% of binomial distribution (SIGMA * 3)
+				else rb_color = X[index2D(i, j, N + 1)];
+				rb_color = (X[index2D(i, j, N + 1)] - 1) / 5; // turning Z value to a fraction to be used in linear interpolation
+				Colors[index3D(i,j,0,N+1,3)] = rb_color; // R
+				Colors[index3D(i,j,1,N+1,3)] = 1; // G
+				Colors[index3D(i,j,2,N+1,3)] = rb_color; // B
 			}
 		}
 
@@ -197,26 +217,26 @@ int main(int argc, char** argv){
 	// "normal" calculation (uses the same logic from marching cubes)
 	for (size_t i = 1; i < 32; ++i){
 		for (size_t j = 1; j < 32; ++j){
-			Normals[i][j][0] = (X[i+1][j] - X[i-1][j]) / 2;
-			Normals[i][j][1] = (X[i][j+1] - X[i][j-1]) / 2;
-			Normals[i][j][2] = -1;
+			Normals[index3D(i,j,0,N+1,3)] = (X[index2D(i+1,j,N+1)] - X[index2D(i-1,j,N+1)]) / 2;
+			Normals[index3D(i,j,1,N+1,3)] = (X[index2D(i,j+1,N+1)] - X[index2D(i,j-1,N+1)]) / 2;
+			Normals[index3D(i,j,2,N+1,3)] = -1;
 		}
 		// sides
-		Normals[i][0][0]  = (X[i+1][0] - X[i-1][0]) / 2;
-		Normals[i][0][1]  = X[i][1] - X[i][0];
-		Normals[i][0][2]  = -1;
+		Normals[index3D(i,0,0,N+1,3)]  = (X[index2D(i+1,0,N+1)] - X[index2D(i-1,0,N+1)]) / 2;
+		Normals[index3D(i,0,1,N+1,3)]  = X[index2D(i,1,N+1)] - X[index2D(i,0,N+1)];
+		Normals[index3D(i,0,2,N+1,3)]  = -1;
 
-		Normals[i][32][0] = (X[i+1][32] - X[i-1][32]) / 2;
-		Normals[i][32][1] = X[i][32] - X[i][31];
-		Normals[i][32][2] = -1;
+		Normals[index3D(i,32,0,N+1,3)] = (X[index2D(i+1,32,N+1)] - X[index2D(i-1,32,N+1)]) / 2;
+		Normals[index3D(i,32,1,N+1,3)] = X[index2D(i,32,N+1)] - X[index2D(i,31,N+1)];
+		Normals[index3D(i,32,2,N+1,3)] = -1;
 
-		Normals[0][i][0]  = X[1][i] - X[0][i];
-		Normals[0][i][1]  = (X[0][i+1] - X[0][i-1]) / 2;
-		Normals[0][i][2]  = -1;
+		Normals[index3D(0,i,0,N+1,3)]  = X[index2D(1,i,N+1)] - X[index2D(0,i,N+1)];
+		Normals[index3D(0,i,1,N+1,3)]  = (X[index2D(0,i+1,N+1)] - X[index2D(0,i-1,N+1)]) / 2;
+		Normals[index3D(0,i,2,N+1,3)]  = -1;
 
-		Normals[32][i][0] = X[32][i] - X[31][i];
-		Normals[32][i][1] = (X[32][i+1] - X[32][i-1]) / 2;
-		Normals[32][i][2] = -1;
+		Normals[index3D(32,i,0,N+1,3)] =  X[index2D(32,i,N+1)] -   X[index2D(31,i,N+1)];
+		Normals[index3D(32,i,1,N+1,3)] = (X[index2D(32,i+1,N+1)] - X[index2D(32,i-1,N+1)]) / 2;
+		Normals[index3D(32,i,2,N+1,3)] = -1;
 	}
 
 	unsigned int vertex_count = 0;
@@ -239,10 +259,10 @@ int main(int argc, char** argv){
 							 // if you want to change this, be sure that H and the size of the array N are also changed and not hardcoded
 	{
 		for (size_t j = 0; j < 32; ++j){
-			std::cout << i << ' ' << j << ' ' << X[i][j] 	     << ' ' << Colors[i][j][0] << ' ' << Colors[i][j][1] << ' ' << Colors[i][j][2] 		 	   << ' ' << Normals[i][j][0] <<  ' ' << Normals[i][j][1] <<  ' ' << Normals[i][j][2] << std::endl;
-			std::cout << i << ' ' << j+1 << ' ' << X[i][j+1] 	 << ' ' << Colors[i][j+1][0] << ' ' << Colors[i][j+1][1] << ' ' << Colors[i][j+1][2] 	   << ' ' << Normals[i][j+1][0] <<  ' ' << Normals[i][j+1][1] <<  ' ' << Normals[i][j+1][2] << std::endl;
-			std::cout << i+1 << ' ' << j+1 << ' ' << X[i+1][j+1] << ' ' << Colors[i+1][j+1][0] << ' ' << Colors[i+1][j+1][1] << ' ' << Colors[i+1][j+1][2] << ' ' << Normals[i+1][j+1][0] <<  ' ' << Normals[i+1][j+1][1] <<  ' ' << Normals[i+1][j+1][2] << std::endl;
-			std::cout << i+1 << ' ' << j << ' ' << X[i+1][j] 	 << ' ' << Colors[i+1][j][0] << ' ' << Colors[i+1][j][1] << ' ' << Colors[i+1][j][2] 	   << ' ' << Normals[i+1][j][0] <<  ' ' << Normals[i+1][j][1] <<  ' ' << Normals[i+1][j][2] << std::endl;
+			std::cout << i << ' ' << j << ' ' << X[index2D(i,j,N+1)] 	     << ' ' << Colors[index3D(i,j,0,N+1,3)    ]<< ' ' << Colors[index3D(i,j,1,N+1,3)    ]<< ' ' << Colors[index3D(i,j,2,N+1,3)    ]<< ' ' << Normals[index3D(i,j,0,N+1,3)    ]<< ' ' << Normals[index3D(i,j,1,N+1,3)    ]<< ' ' << Normals[index3D(i,j,2,N+1,3)    ]<< std::endl;
+			std::cout << i << ' ' << j+1 << ' ' << X[index2D(i,j+1,N+1)] 	 << ' ' << Colors[index3D(i,j+1,0,N+1,3)  ]<< ' ' << Colors[index3D(i,j+1,1,N+1,3)  ]<< ' ' << Colors[index3D(i,j+1,2,N+1,3)  ]<< ' ' << Normals[index3D(i,j+1,0,N+1,3)  ]<< ' ' << Normals[index3D(i,j+1,1,N+1,3)  ]<< ' ' << Normals[index3D(i,j+1,2,N+1,3)  ]<< std::endl;
+			std::cout << i+1 << ' ' << j+1 << ' ' << X[index2D(i+1,j+1,N+1)] << ' ' << Colors[index3D(i+1,j+1,0,N+1,3)]<< ' ' << Colors[index3D(i+1,j+1,1,N+1,3)]<< ' ' << Colors[index3D(i+1,j+1,2,N+1,3)]<< ' ' << Normals[index3D(i+1,j+1,0,N+1,3)]<< ' ' << Normals[index3D(i+1,j+1,1,N+1,3)]<< ' ' << Normals[index3D(i+1,j+1,2,N+1,3)]<< std::endl;
+			std::cout << i+1 << ' ' << j << ' ' << X[index2D(i+1,j,N+1)] 	 << ' ' << Colors[index3D(i+1,j,0,N+1,3)  ]<< ' ' << Colors[index3D(i+1,j,1,N+1,3)  ]<< ' ' << Colors[index3D(i+1,j,2,N+1,3)  ]<< ' ' << Normals[index3D(i+1,j,0,N+1,3)  ]<< ' ' << Normals[index3D(i+1,j,1,N+1,3)  ]<< ' ' << Normals[index3D(i+1,j,2,N+1,3)  ]<< std::endl;
 			vertex_count +=4;
 		}
 	}
@@ -258,4 +278,7 @@ int main(int argc, char** argv){
 		std::cout << i+1 << ' ' << i+2 << ' ' << i+3 << ' ' << -1 << std::endl;
 	}
 	std::cout << "WorldEnd" << std::endl;
+	delete[] X;
+	delete[] Normals;
+	delete[] Colors;
 }
