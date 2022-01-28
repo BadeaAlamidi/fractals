@@ -2,12 +2,12 @@
 #include <iomanip>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 
 #define PI 3.141592654
 
 #define MAX_LEVEL 5
 #define SIGMA 2
-// #define SIGMA 5
 
 // used to dereference one-dimensional array as a 2d array. the width is equal to how many elements exist in a row
 inline int index2D(int column, int row, int width){
@@ -50,16 +50,52 @@ float f4(float delta, float x0, float x1, float x2, float x3) {
 }
 
 int main(int argc, char** argv){
-	int max_level = 5; // determines
-	if (argc < 2){
-		std::cerr << "Usage: ./fractals seed max_level(optional)" << std::endl;
+	int max_level = 5; // determines the level of recursion of main logic @ "BEGIN"
+	bool normals = false; // used to conditionally print normal vectors for each vertex
+	bool seed_provided = false; // used to ensure that the seed argument was provided in invocation
+	
+	//else if (argc >= 3){
+	//	max_level = atoi(argv[2]);;;;;;;;;;;;
+	//}
+	int seed, opt;
+	int deviation = SIGMA;
+	while ((opt = getopt(argc, argv, "ns:l:d:")) != -1){
+		switch(opt) {
+			case 'n' : 
+				normals = true;
+			break;
+			case 'l' : 
+				max_level = atoi(optarg);
+				std::cout << "#max level = "<< max_level << std::endl;
+				if (max_level < 2 || max_level > 7){
+					max_level = 5;
+					std::cout << "unrecommended value for max_level. values must be in the range 2-7" << std::endl;
+				}
+			break;
+			case 's' : 
+				seed_provided = true;
+				seed = atoi(optarg);
+				std::cout << "#seed level = "<< seed << std::endl;
+			break;
+			case 'd' : 
+				deviation = atoi(optarg);
+				if (!deviation) deviation = SIGMA; // check if atoi returns 0
+			break;
+			default : 
+				std::cerr << "Usage: ./fractals -s (seed. required) -l(max_level, default: 5) -n (normal flag, optional) -d(optional standard_deviation value. default: 2)\n
+							  values for max_level must range from 2-7\n
+					  		  value for standard deviation are recommended to be in the range of 2-5" << std::endl;
+				exit(EXIT_FAILURE);
+			break;
+		}
+	}
+	if (!seed_provided){
+		std::cerr << "Usage: ./fractals -s (seed. required) -l(max_level, default: 5) -n (normal flag, optional) -d(optional standard_deviation value. default: 2)\n
+					  values for max_level must range from 2-7\n
+					  value for standard deviation are recommended to be in the range of 2-5" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	else if (argc == 3){
-		max_level = atoi(argv[2]);;;;;;;;;;;;
-	}
-	
-	int seed = atoi(argv[1]);
+	// int seed = atoi(argv[1]);
 
 	srand(seed);
     //std::cout << gaussrand() << std::endl;
@@ -80,7 +116,7 @@ int main(int argc, char** argv){
 	float * Normals = new float[(N+1) * (N+1) * 3];
 
 	// "set the initial random corners"
-	delta = SIGMA;
+	delta = deviation;
 	X[index2D(0,0,N+1)] = delta * gaussrand();
 	X[index2D(0,N,N+1)] = delta * gaussrand();
 	X[index2D(N,0,N+1)] = delta * gaussrand();
@@ -217,55 +253,69 @@ int main(int argc, char** argv){
 //				Normals[i][j][2]=-1;
 //		}
 	// "normal" calculation (uses the same logic from marching cubes)
-	for (size_t i = 1; i < N; ++i){
-		for (size_t j = 1; j < N; ++j){
-			Normals[index3D(i,j,0,N+1,N + 1)] = (X[index2D(i+1,j,N+1)] - X[index2D(i-1,j,N+1)]) / 2;
-			Normals[index3D(i,j,1,N+1,N + 1)] = (X[index2D(i,j+1,N+1)] - X[index2D(i,j-1,N+1)]) / 2;
-			Normals[index3D(i,j,2,N+1,N + 1)] = -1;
+	if (normals){
+		for (size_t i = 1; i < N; ++i){
+			for (size_t j = 1; j < N; ++j){
+				Normals[index3D(i,j,0,N+1,N + 1)] = (X[index2D(i+1,j,N+1)] - X[index2D(i-1,j,N+1)]) / 2;
+				Normals[index3D(i,j,1,N+1,N + 1)] = (X[index2D(i,j+1,N+1)] - X[index2D(i,j-1,N+1)]) / 2;
+				Normals[index3D(i,j,2,N+1,N + 1)] = -1;
+			}
+			// sides
+			Normals[index3D(i,0,0,N+1,N + 1)]  = (X[index2D(i+1,0,N+1)] - X[index2D(i-1,0,N+1)]) / 2;
+			Normals[index3D(i,0,1,N+1,N + 1)]  = X[index2D(i,1,N+1)] - X[index2D(i,0,N+1)];
+			Normals[index3D(i,0,2,N+1,N + 1)]  = -1;
+
+			Normals[index3D(i,N,0,N+1,N + 1)] = (X[index2D(i+1,N,N+1)] - X[index2D(i-1,N,N+1)]) / 2;
+			Normals[index3D(i,N,1,N+1,N + 1)] = X[index2D(i,N,N+1)] - X[index2D(i,31,N+1)];
+			Normals[index3D(i,N,2,N+1,N + 1)] = -1;
+
+			Normals[index3D(0,i,0,N+1,N + 1)]  = X[index2D(1,i,N+1)] - X[index2D(0,i,N+1)];
+			Normals[index3D(0,i,1,N+1,N + 1)]  = (X[index2D(0,i+1,N+1)] - X[index2D(0,i-1,N+1)]) / 2;
+			Normals[index3D(0,i,2,N+1,N + 1)]  = -1;
+
+			Normals[index3D(N,i,0,N+1,N + 1)] =  X[index2D(N,i,N+1)] -   X[index2D(N,i,N+1)];
+			Normals[index3D(N,i,1,N+1,N + 1)] = (X[index2D(N,i+1,N+1)] - X[index2D(N,i-1,N+1)]) / 2;
+			Normals[index3D(N,i,2,N+1,N + 1)] = -1;
 		}
-		// sides
-		Normals[index3D(i,0,0,N+1,N + 1)]  = (X[index2D(i+1,0,N+1)] - X[index2D(i-1,0,N+1)]) / 2;
-		Normals[index3D(i,0,1,N+1,N + 1)]  = X[index2D(i,1,N+1)] - X[index2D(i,0,N+1)];
-		Normals[index3D(i,0,2,N+1,N + 1)]  = -1;
-
-		Normals[index3D(i,N,0,N+1,N + 1)] = (X[index2D(i+1,N,N+1)] - X[index2D(i-1,N,N+1)]) / 2;
-		Normals[index3D(i,N,1,N+1,N + 1)] = X[index2D(i,N,N+1)] - X[index2D(i,31,N+1)];
-		Normals[index3D(i,N,2,N+1,N + 1)] = -1;
-
-		Normals[index3D(0,i,0,N+1,N + 1)]  = X[index2D(1,i,N+1)] - X[index2D(0,i,N+1)];
-		Normals[index3D(0,i,1,N+1,N + 1)]  = (X[index2D(0,i+1,N+1)] - X[index2D(0,i-1,N+1)]) / 2;
-		Normals[index3D(0,i,2,N+1,N + 1)]  = -1;
-
-		Normals[index3D(N,i,0,N+1,N + 1)] =  X[index2D(N,i,N+1)] -   X[index2D(N,i,N+1)];
-		Normals[index3D(N,i,1,N+1,N + 1)] = (X[index2D(N,i+1,N+1)] - X[index2D(N,i-1,N+1)]) / 2;
-		Normals[index3D(N,i,2,N+1,N + 1)] = -1;
 	}
 
 	unsigned int vertex_count = 0;
 	std::cout << "Display \"display\" \"Screen\" \"rgbdouble\"" << std::endl;
 	std::cout << "Format 1280 960" << std::endl;
 	std::cout << "CameraEye   0.0 0.0 14.0" << std::endl;
-	std::cout << "CameraAt    16.0 16.0 3.0" << std::endl;
+	// std::cout << "CameraAt    16.0 16.0 3.0" << std::endl;
+	std::cout << "CameraAt    " << N/2 << ' ' << N/2 << ' ' << 3.0 << std::endl;
 	std::cout << "CameraUp   0 0 1" << std::endl;
 	std::cout << "Background 0 0.3 0.7" << std::endl;
 	std::cout << "WorldBegin" << std::endl;
-	//std::cout << "PointLight 16 16 20 1.0 1.0 1.0  100" << std::endl;
-	std::cout << "FarLight 16 16 20  1.0  1.0  1.0  1" << std::endl;
+	std::cout << "FarLight " << N/2 << ' ' << N/2 << " 20 1.0  1.0  1.0  1" << std::endl;
+	//std::cout << "FarLight 16 16 20  1.0  1.0  1.0  1" << std::endl;
 	std::cout << "Ka 0.3" << std::endl;
 	std::cout << "Kd 0.7" << std::endl;
 	std::cout << "Color 1 0 0 " << std::endl;
-	std::cout << "PolySet \"PCN\"" << std::endl;
+	std::cout << "PolySet \"PC" << (normals ? "N\"" : "\"") << std::endl;
 	std::cout << pow(N,2) * 4 << std::endl << pow(N,2)*2 << std::endl;
 
-	for (size_t i = 0; i < N; ++i) // size is hardcoded as reminder that H is also hardcoded in main logic.
-							 // if you want to change this, be sure that H and the size of the array N are also changed and not hardcoded
-	{
-		for (size_t j = 0; j < N; ++j){
-			std::cout << i << ' ' << j << ' ' << X[index2D(i,j,N+1)] 	     << ' ' << Colors[index3D(i,j,0,N+1,N + 1)    ]<< ' ' << Colors[index3D(i,j,1,N+1,N + 1)    ]<< ' ' << Colors[index3D(i,j,2,N+1,N + 1)    ]<< ' ' << Normals[index3D(i,j,0,N+1,N + 1)    ]<< ' ' << Normals[index3D(i,j,1,N+1,N + 1)    ]<< ' ' << Normals[index3D(i,j,2,N+1,N + 1)    ]<< std::endl;
-			std::cout << i << ' ' << j+1 << ' ' << X[index2D(i,j+1,N+1)] 	 << ' ' << Colors[index3D(i,j+1,0,N+1,N + 1)  ]<< ' ' << Colors[index3D(i,j+1,1,N+1,N + 1)  ]<< ' ' << Colors[index3D(i,j+1,2,N+1,N + 1)  ]<< ' ' << Normals[index3D(i,j+1,0,N+1,N + 1)  ]<< ' ' << Normals[index3D(i,j+1,1,N+1,N + 1)  ]<< ' ' << Normals[index3D(i,j+1,2,N+1,N + 1)  ]<< std::endl;
-			std::cout << i+1 << ' ' << j+1 << ' ' << X[index2D(i+1,j+1,N+1)] << ' ' << Colors[index3D(i+1,j+1,0,N+1,N + 1)]<< ' ' << Colors[index3D(i+1,j+1,1,N+1,N + 1)]<< ' ' << Colors[index3D(i+1,j+1,2,N+1,N + 1)]<< ' ' << Normals[index3D(i+1,j+1,0,N+1,N + 1)]<< ' ' << Normals[index3D(i+1,j+1,1,N+1,N + 1)]<< ' ' << Normals[index3D(i+1,j+1,2,N+1,N + 1)]<< std::endl;
-			std::cout << i+1 << ' ' << j << ' ' << X[index2D(i+1,j,N+1)] 	 << ' ' << Colors[index3D(i+1,j,0,N+1,N + 1)  ]<< ' ' << Colors[index3D(i+1,j,1,N+1,N + 1)  ]<< ' ' << Colors[index3D(i+1,j,2,N+1,N + 1)  ]<< ' ' << Normals[index3D(i+1,j,0,N+1,N + 1)  ]<< ' ' << Normals[index3D(i+1,j,1,N+1,N + 1)  ]<< ' ' << Normals[index3D(i+1,j,2,N+1,N + 1)  ]<< std::endl;
-			vertex_count +=4;
+	if (normals){
+		for (size_t i = 0; i < N; ++i){
+			for (size_t j = 0; j < N; ++j){
+				std::cout << i << ' ' << j << ' ' << X[index2D(i,j,N+1)] 	     << ' ' << Colors[index3D(i,j,0,N+1,N + 1)    ]<< ' ' << Colors[index3D(i,j,1,N+1,N + 1)    ]<< ' ' << Colors[index3D(i,j,2,N+1,N + 1)    ]<< ' ' << Normals[index3D(i,j,0,N+1,N + 1)    ]<< ' ' << Normals[index3D(i,j,1,N+1,N + 1)    ]<< ' ' << Normals[index3D(i,j,2,N+1,N + 1)    ]<< std::endl;
+				std::cout << i << ' ' << j+1 << ' ' << X[index2D(i,j+1,N+1)] 	 << ' ' << Colors[index3D(i,j+1,0,N+1,N + 1)  ]<< ' ' << Colors[index3D(i,j+1,1,N+1,N + 1)  ]<< ' ' << Colors[index3D(i,j+1,2,N+1,N + 1)  ]<< ' ' << Normals[index3D(i,j+1,0,N+1,N + 1)  ]<< ' ' << Normals[index3D(i,j+1,1,N+1,N + 1)  ]<< ' ' << Normals[index3D(i,j+1,2,N+1,N + 1)  ]<< std::endl;
+				std::cout << i+1 << ' ' << j+1 << ' ' << X[index2D(i+1,j+1,N+1)] << ' ' << Colors[index3D(i+1,j+1,0,N+1,N + 1)]<< ' ' << Colors[index3D(i+1,j+1,1,N+1,N + 1)]<< ' ' << Colors[index3D(i+1,j+1,2,N+1,N + 1)]<< ' ' << Normals[index3D(i+1,j+1,0,N+1,N + 1)]<< ' ' << Normals[index3D(i+1,j+1,1,N+1,N + 1)]<< ' ' << Normals[index3D(i+1,j+1,2,N+1,N + 1)]<< std::endl;
+				std::cout << i+1 << ' ' << j << ' ' << X[index2D(i+1,j,N+1)] 	 << ' ' << Colors[index3D(i+1,j,0,N+1,N + 1)  ]<< ' ' << Colors[index3D(i+1,j,1,N+1,N + 1)  ]<< ' ' << Colors[index3D(i+1,j,2,N+1,N + 1)  ]<< ' ' << Normals[index3D(i+1,j,0,N+1,N + 1)  ]<< ' ' << Normals[index3D(i+1,j,1,N+1,N + 1)  ]<< ' ' << Normals[index3D(i+1,j,2,N+1,N + 1)  ]<< std::endl;
+				vertex_count +=4;
+			}
+		}
+	}
+	else {
+		for (size_t i = 0; i < N; ++i){
+			for (size_t j = 0; j < N; ++j){
+				std::cout << i << ' ' << j << ' ' << X[index2D(i,j,N+1)] 	     << ' ' << Colors[index3D(i,j,0,N+1,N + 1)    ]<< ' ' << Colors[index3D(i,j,1,N+1,N + 1)    ]<< ' ' << Colors[index3D(i,j,2,N+1,N + 1)    ]<< std::endl;
+				std::cout << i << ' ' << j+1 << ' ' << X[index2D(i,j+1,N+1)] 	 << ' ' << Colors[index3D(i,j+1,0,N+1,N + 1)  ]<< ' ' << Colors[index3D(i,j+1,1,N+1,N + 1)  ]<< ' ' << Colors[index3D(i,j+1,2,N+1,N + 1)  ]<< std::endl;
+				std::cout << i+1 << ' ' << j+1 << ' ' << X[index2D(i+1,j+1,N+1)] << ' ' << Colors[index3D(i+1,j+1,0,N+1,N + 1)]<< ' ' << Colors[index3D(i+1,j+1,1,N+1,N + 1)]<< ' ' << Colors[index3D(i+1,j+1,2,N+1,N + 1)]<< std::endl;
+				std::cout << i+1 << ' ' << j << ' ' << X[index2D(i+1,j,N+1)] 	 << ' ' << Colors[index3D(i+1,j,0,N+1,N + 1)  ]<< ' ' << Colors[index3D(i+1,j,1,N+1,N + 1)  ]<< ' ' << Colors[index3D(i+1,j,2,N+1,N + 1)  ]<< std::endl;
+				vertex_count +=4;
+			}
 		}
 	}
 	// face description for rd_view scene
