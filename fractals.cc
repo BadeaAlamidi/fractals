@@ -82,17 +82,17 @@ int main(int argc, char** argv){
 				if (!deviation) deviation = SIGMA; // check if atoi returns 0
 			break;
 			default : 
-				std::cerr << "Usage: ./fractals -s (seed. required) -l(max_level, default: 5) -n (normal flag, optional) -d(optional standard_deviation value. default: 2)\n
-							  values for max_level must range from 2-7\n
-					  		  value for standard deviation are recommended to be in the range of 2-5" << std::endl;
+				std::cerr << "Usage: ./fractals -s (seed. required) -l(max_level, default: 5) -n (normal flag, optional) -d(optional standard_deviation value. default: 2)\n"
+							  "values for max_level must range from 2-7\n"
+					  		  "value for standard deviation are recommended to be in the range of 2-5" << std::endl;
 				exit(EXIT_FAILURE);
 			break;
 		}
 	}
 	if (!seed_provided){
-		std::cerr << "Usage: ./fractals -s (seed. required) -l(max_level, default: 5) -n (normal flag, optional) -d(optional standard_deviation value. default: 2)\n
-					  values for max_level must range from 2-7\n
-					  value for standard deviation are recommended to be in the range of 2-5" << std::endl;
+		std::cerr << "Usage: ./fractals -s (seed. required) -l(max_level, default: 5) -n (normal flag, optional) -d(optional standard_deviation value. default: 2)\n"
+					  "values for max_level must range from 2-7\n"
+					  "value for standard deviation are recommended to be in the range of 2-5" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	// int seed = atoi(argv[1]);
@@ -226,11 +226,11 @@ int main(int argc, char** argv){
 				Colors[index3D(i,j,1,N+1,N + 1)] = 0.93; //G
 				Colors[index3D(i,j,2,N+1,N + 1)] = 0.81; //B
 			}
-			else{ // green to white linear interpolation:
+			else{ // green to white interpolation:
 				float rb_color;
-				if (X[index2D(i, j, N + 1)]>6 ) rb_color = 6; //limit coloration to cover the positive 0.1% of binomial distribution (SIGMA * 3)
+				if (X[index2D(i, j, N + 1)]> (deviation *3) ) rb_color = deviation * 3; //limit coloration to cover the positive 0.1% of binomial distribution (SIGMA * 3)
 				else rb_color = X[index2D(i, j, N + 1)];
-				rb_color = (X[index2D(i, j, N + 1)] - 1) / 5; // turning Z value to a fraction to be used in linear interpolation
+				rb_color = (X[index2D(i, j, N + 1)] - 1) / ((deviation * 3) - 1); // turning Z value to a fraction to be used in linear interpolation
 				Colors[index3D(i,j,0,N+1,N + 1)] = rb_color; // R
 				Colors[index3D(i,j,1,N+1,N + 1)] = 1; // G
 				Colors[index3D(i,j,2,N+1,N + 1)] = rb_color; // B
